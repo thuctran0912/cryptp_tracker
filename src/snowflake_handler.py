@@ -23,6 +23,7 @@ class SnowflakeHandler:
         )
         """)
 
+
     def insert_crypto_price(self, timestamp, symbol, price):
         self.cursor.execute("""
         INSERT INTO TEST.TEST.crypto_prices (timestamp, symbol, price)
