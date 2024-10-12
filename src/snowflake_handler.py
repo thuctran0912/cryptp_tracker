@@ -25,12 +25,17 @@ class SnowflakeHandler:
 
 
     def insert_crypto_price(self, timestamp, symbol, price):
-        self.cursor.execute("""
-        INSERT INTO TEST.TEST.crypto_prices (timestamp, symbol, price)
-        VALUES (%s, %s, %s)
-        """, (timestamp, symbol, price))
+        merge_query = """
+        MERGE INTO TEST.TEST.crypto_prices AS target
+        USING (SELECT %s AS timestamp, %s AS symbol, %s AS price) AS source
+        ON target.timestamp = source.timestamp AND target.symbol = source.symbol
+        WHEN NOT MATCHED THEN
+            INSERT (timestamp, symbol, price)
+            VALUES (source.timestamp, source.symbol, source.price)
+        """
+        self.cursor.execute(merge_query, (timestamp, symbol, price))
         self.conn.commit()
-
+        
     def get_latest_prices(self, limit=10):
         query = f"""
         SELECT * FROM TEST.TEST.crypto_prices
